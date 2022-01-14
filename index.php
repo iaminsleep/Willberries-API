@@ -22,17 +22,17 @@ switch($method) {
   case 'GET':
     if($type === 'goods') {
       if(isset($id)) {
-        getGood($database, $id);
+        getGood($DATABASE, $id);
       }
 
       else {
-        getGoods($database);  /* Получение всех товаров */
+        getGoods($DATABASE);  /* Получение всех товаров */
       }
     }
     break;
   case 'POST':
     if($type === 'goods') {
-      addGood($database, $_POST);
+      addGood($DATABASE, $_POST);
     }
     break;
   case 'PATCH':
@@ -41,14 +41,14 @@ switch($method) {
         $data = file_get_contents('php://input');
         $data = json_decode($data, true); /* преобразование json в обычный ассоциативный php массив, 
         потому что метод PATCH не поддерживает form-дату из метода POST */
-        updateGood($database, $data, $id);
+        updateGood($DATABASE, $data, $id);
       }
     }
     break;
   case 'DELETE':
     if($type === 'goods') {
       if(isset($id)) {
-        deleteGood($database, $id);
+        deleteGood($DATABASE, $id);
       }
     }
     break;
