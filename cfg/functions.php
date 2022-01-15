@@ -12,6 +12,11 @@ function mysqliQuery($db, $sql = "") {
   return $query;
 }
 
+/************************ GOODS ********************/
+/************************ GOODS ********************/
+/************************ GOODS ********************/
+/************************ GOODS ********************/
+
 function getGoods($db) {
   $posts = mysqliQuery($db, "SELECT * FROM `goods`;");
 
@@ -48,8 +53,8 @@ function addGood($db, $data) {
   $category = $data["category"] ? $data["category"] : "Category";
   $gender = $data["gender"] ? $data["gender"] : "Gender";
   $price = $data["price"] ? $data["price"] : 0;
-  $img = $data["img"] ? $data["img"] : "Img";
-  $label = $data["label"] ? $data["label"] : "Label";
+  $img = $data["img"] ? $data["img"] : "img/no-image.png";
+  $label = $data["label"] ? $data["label"] : NULL;
   $offer = $data["offer"] ? $data["offer"] : 0;
 
   if(mysqliQuery($db, "INSERT INTO `goods` (`id`, `name`, `description`, `category`, `gender`, `price`, `img`, `label`, `offer`) VALUES (NULL, '$name', '$description', '$category', '$gender', '$price', '$img', '$label', '$offer');")) 
