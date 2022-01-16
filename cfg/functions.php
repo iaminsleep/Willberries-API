@@ -54,7 +54,7 @@ function addGood($db, $data) {
   $gender = $data["gender"] ? $data["gender"] : "Gender";
   $price = $data["price"] ? $data["price"] : 0;
   $img = $data["img"] ? $data["img"] : "img/no-image.png";
-  $label = $data["label"] ? $data["label"] : NULL;
+  $label = $data["label"] ? $data["label"] : "";
   $offer = $data["offer"] ? $data["offer"] : 0;
 
   if(mysqliQuery($db, "INSERT INTO `goods` (`id`, `name`, `description`, `category`, `gender`, `price`, `img`, `label`, `offer`) VALUES (NULL, '$name', '$description', '$category', '$gender', '$price', '$img', '$label', '$offer');")) 

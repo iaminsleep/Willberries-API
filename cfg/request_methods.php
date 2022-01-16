@@ -17,9 +17,6 @@ switch($method) {
     if($type === 'goods') {
       addGood($DATABASE, $_POST);
     }
-    if($type === 'img') {
-      uploadImg($DATABASE, $_POST);
-    }
     break;
   case 'PATCH':
     if($type === 'goods') {
