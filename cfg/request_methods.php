@@ -12,10 +12,32 @@ switch($method) {
         getGoods($DATABASE);  /* Получение всех товаров */
       }
     }
+    if($type === 'orders') {
+      if(isset($id)) {
+        getOrder($DATABASE, $id);
+      }
+      else {
+        getOrders($DATABASE);
+      }
+    }
+    if($type === 'users') {
+      if(isset($id)) {
+        getUser($DATABASE, $id);
+      }
+      else {
+        getUsers($DATABASE);
+      }
+    }
     break;
   case 'POST':
     if($type === 'goods') {
       addGood($DATABASE, $_POST);
+    }
+    if($type === 'orders') {
+      addOrder($DATABASE, $_POST);
+    }
+    if($type === 'users') {
+      registerUser($DATABASE, $_POST);
     }
     break;
   case 'PATCH':

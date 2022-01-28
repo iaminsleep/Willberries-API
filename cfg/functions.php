@@ -128,3 +128,129 @@ function deleteGood($db, $goodId) {
 
   echo json_encode($res);
 }
+
+/************************ USERS ********************/
+/************************ USERS ********************/
+/************************ USERS ********************/
+/************************ USERS ********************/
+
+function getUsers($db) {
+  $users = mysqliQuery($db, "SELECT * FROM `users`;");
+
+  $usersList = [];
+
+  while($user = mysqli_fetch_assoc($users)) {
+    $usersList[] = $user;
+  }
+
+  echo json_encode($usersList); /* Данные переводятся в JSON формат */
+}
+
+function registerUser($db, $postData) {
+  $email = $postData["email"];
+  $password = $postData["password"];
+  $confirm_password = $postData["confirm_password"];
+
+  if(empty($postData) 
+    || !isset($email) || empty($email) 
+    || !isset($password) || empty($password) 
+    || !isset($confirm_password) || empty($confirm_password))
+  return false;
+
+  if($password !== $confirm_password) {
+    $_SESSION["error"] = 'Пароли не совпадают!';
+    return false;
+  }
+
+  $user = mysqliQuery($db, "SELECT * FROM `users` WHERE `email` = '$email';");
+
+  if(mysqli_num_rows($user) > 0) {
+    $_SESSION["error"] = 'Пользователь уже существует!';
+    return false;
+  };
+
+  $date = date("Y-m-d H:i:s");
+  $hashPass = password_hash($password, PASSWORD_DEFAULT);
+
+  if(mysqliQuery($db, "INSERT INTO `users` (`id`, `email`, `password`, `registered_at`) VALUES (NULL, '$email', '$hashPass', '$date');")) {
+    http_response_code(201);
+    $res = [
+      "status" => true,
+      "user_id" => mysqli_insert_id($db)
+    ];
+  }
+
+  else {
+    http_response_code(401); /* Bad request */
+    $res = [
+      "status" => false,
+      "message" => "Bad Request!"
+    ];
+  }
+
+  echo json_encode($res); 
+}
+
+/************************ ORDERS ********************/
+/************************ ORDERS ********************/
+/************************ ORDERS ********************/
+/************************ ORDERS ********************/
+
+function addOrder($db, $data) {
+
+  $personName = $data["name"];
+  $email = $data["email"];
+  $phone = $data["phone"];
+  $goods = $data["goods"];
+
+  // foreach($goods as $good) {
+  //   mysqliQuery($db, "INSERT INTO `orders` (`good_id`, `user_id`, `email`, `price`, `date`) VALUES (`$good['id']`, ")
+  // }
+  // if(mysqliQuery($db, "INSERT INTO `goods` (`id`, `name`, `description`, `category`, `gender`, `price`, `img`, `label`, `offer`) VALUES (NULL, '$name', '$description', '$category', '$gender', '$price', '$img', '$label', '$offer');")) 
+  // {
+  //   http_response_code(201); /* ответ 201 - Created */
+  //   $res = [
+  //     "status" => true,
+  //     "good_id" => mysqli_insert_id($db)
+  //   ];
+  // }
+
+  // else {
+  //   http_response_code(401); /* Bad request */
+  //   $res = [
+  //     "status" => false,
+  //     "message" => "Bad Request!"
+  //   ];
+  // }
+
+  // echo json_encode($res);
+}
+
+function getOrders($db) {
+  $orders = mysqliQuery($db, "SELECT * FROM `orders`;");
+
+  $ordersList = [];
+
+  while($order = mysqli_fetch_assoc($orders)) {
+    $ordersList[] = $order;
+  }
+
+  echo json_encode($ordersList); /* Данные переводятся в JSON формат */
+}
+
+function getOrder($db, $id) {
+  $order = mysqliQuery($db, "SELECT * FROM `orders` WHERE `id` = '$id';");
+  
+  if(mysqli_num_rows($order) === 0) {
+    http_response_code(404);
+    $res = [
+      "status" => false,
+      "message" => "Order wasn't found!"
+    ];
+    echo json_encode($res);
+  }
+  else {
+    $order = mysqli_fetch_assoc($order); /* Преобразование в обычный ассоциативный массив */
+    echo json_encode($order);
+  }
+}
