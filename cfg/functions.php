@@ -143,36 +143,35 @@ function getUsers($db) {
     $usersList[] = $user;
   }
 
-  echo json_encode($usersList); /* Данные переводятся в JSON формат */
+  echo json_encode($usersList);
 }
 
 function registerUser($db, $postData) {
-  $email = $postData["email"];
-  $password = $postData["password"];
-  $confirm_password = $postData["confirm_password"];
+  $email = mysqli_real_escape_string($db, $postData["email"]);
+  $password = mysqli_real_escape_string($db, $postData["password"]);
+  $confirm_password = mysqli_real_escape_string($db, $postData["confirm_password"]);
 
-  if(empty($postData) 
-    || !isset($email) || empty($email) 
-    || !isset($password) || empty($password) 
-    || !isset($confirm_password) || empty($confirm_password))
-  return false;
+  if(empty($postData) || !isset($email) || empty($email) || !isset($password) || empty($password) 
+  || !isset($confirm_password) || empty($confirm_password)) return false;
 
   if($password !== $confirm_password) {
-    $_SESSION["error"] = 'Пароли не совпадают!';
+    echo "Passwords don't match!";
     return false;
   }
 
   $user = mysqliQuery($db, "SELECT * FROM `users` WHERE `email` = '$email';");
 
   if(mysqli_num_rows($user) > 0) {
-    $_SESSION["error"] = 'Пользователь уже существует!';
+    echo 'User with such email already exists!';
     return false;
   };
 
   $date = date("Y-m-d H:i:s");
   $hashPass = password_hash($password, PASSWORD_DEFAULT);
-
-  if(mysqliQuery($db, "INSERT INTO `users` (`id`, `email`, `password`, `registered_at`) VALUES (NULL, '$email', '$hashPass', '$date');")) {
+  $nameFromEmail = strstr($email, '@', true);
+  
+  if(mysqliQuery($db, "INSERT INTO `users` (`id`, `email`, `password`, `registered_at`, `name`) 
+  VALUES (NULL, '$email', '$hashPass', '$date', '$nameFromEmail');")) {
     http_response_code(201);
     $res = [
       "status" => true,
@@ -181,7 +180,7 @@ function registerUser($db, $postData) {
   }
 
   else {
-    http_response_code(401); /* Bad request */
+    http_response_code(401);
     $res = [
       "status" => false,
       "message" => "Bad Request!"
@@ -196,7 +195,7 @@ function registerUser($db, $postData) {
 /************************ ORDERS ********************/
 /************************ ORDERS ********************/
 
-function addOrder($db, $data) {
+function placeOrder($db, $data) {
 
   $personName = $data["name"];
   $email = $data["email"];

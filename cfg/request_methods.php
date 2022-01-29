@@ -34,7 +34,7 @@ switch($method) {
       addGood($DATABASE, $_POST);
     }
     if($type === 'orders') {
-      addOrder($DATABASE, $_POST);
+      placeOrder($DATABASE, $_POST);
     }
     if($type === 'users') {
       registerUser($DATABASE, $_POST);
