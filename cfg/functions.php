@@ -151,7 +151,7 @@ function getUsers() {
 
 function registerUser($postData) {
   $mysqli = DataBase::getInstance();
-
+ 
   $email = mysqli_real_escape_string($mysqli, $postData["email"]);
   $password = mysqli_real_escape_string($mysqli, $postData["password"]);
   $confirm_password = mysqli_real_escape_string($mysqli, $postData["confirm_password"]);
@@ -178,11 +178,11 @@ function registerUser($postData) {
   $hashPass = password_hash($password, PASSWORD_DEFAULT);
   $nameFromEmail = strstr($email, '@', true);
   
-  $query = $mysqli->prepare("INSERT INTO `users` (`email`, `password`, `registered_at`, `name`) 
+  $stmt = $mysqli->prepare("INSERT INTO `users` (`email`, `password`, `registered_at`, `name`) 
   VALUES (?, ?, ?, ?);");
-  $query->bind_param('ssss', $email, $hashPass, $date, $nameFromEmail);
+  $stmt->bind_param('ssss', $email, $hashPass, $date, $nameFromEmail);
 
-  if($query->execute()) {
+  if($stmt->execute()) {
     http_response_code(201);
     $res = [
       "status" => true,
@@ -199,6 +199,56 @@ function registerUser($postData) {
   }
 
   echo json_encode($res); 
+}
+
+function login($postData) {
+  $mysqli = DataBase::getInstance();
+ 
+  $email = mysqli_real_escape_string($mysqli, $postData["email"]);
+  $password = mysqli_real_escape_string($mysqli, $postData["password"]);
+
+  if(empty($postData) || !isset($email) || empty($email) || !isset($password) || empty($password)) return false;
+
+  $stmt = $mysqli->prepare("SELECT * FROM `users` WHERE `email` = (?);");
+  $stmt->bind_param('s', $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if(mysqli_num_rows($result) > 0) {
+    $data = $result->fetch_assoc();
+    $isValid = password_verify($password, $data["password"]);
+
+    if(!$isValid) {
+      http_response_code(403);
+      $res = [
+        "status" => false,
+        "message" => "Invalid username or password!"
+      ];
+      echo 'Invalid username or password!';
+      return false;
+    } 
+
+    else {
+      http_response_code(200);
+      $res = [
+        "status" => true,
+        "user_id" => $data["id"],
+      ];
+      $_SESSION["user"] = $data["name"];
+    }
+  }
+
+  else {
+    http_response_code(404);
+    $res = [
+      "status" => false,
+      "message" => 'User with such email was not found!',
+    ];
+    echo 'User with email '.$postData['email'].' was not found!';
+    return false;
+  }
+
+  echo json_encode($res);
 }
 
 /************************ ORDERS ********************/

@@ -31,3 +31,5 @@ class DataBase
   /* cloning of singleton classes is not allowed so __clone() function must be empty */
   private function __clone() {}
 }
+
+session_start();
