@@ -1,38 +1,37 @@
 <?php
 
-require 'config.php';
-
-function mysqliQuery($db, $sql = "") {
-  mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
-  if(empty($sql)) return false;
-
-  $query = mysqli_query($db, $sql) or die("Ошибка запроса: ".mysqli_error());
-
-  return $query;
-}
+require_once 'config.php';
 
 /************************ GOODS ********************/
 /************************ GOODS ********************/
 /************************ GOODS ********************/
 /************************ GOODS ********************/
 
-function getGoods($db) {
-  $posts = mysqliQuery($db, "SELECT * FROM `goods`;");
+function getGoods() {
+  $mysqli = DataBase::getInstance();
+  
+  $stmt = $mysqli->prepare("SELECT * FROM `goods`;");
+  $stmt->execute();
+  $result = $stmt->get_result();
 
-  $postsList = [];
+  $goodsList = [];
 
-  while($post = mysqli_fetch_assoc($posts)) {
-    $postsList[] = $post;
+  while($good = $result->fetch_assoc()) {
+    $goodsList[] = $good;
   }
 
-  echo json_encode($postsList); /* Данные переводятся в JSON формат */
+  echo json_encode($goodsList); /* Данные переводятся в JSON формат */
 }
 
-function getGood($db, $id) {
-  $post = mysqliQuery($db, "SELECT * FROM `goods` WHERE `id` = '$id';");
+function getGood($id) {
+  $mysqli = DataBase::getInstance();
+
+  $stmt = $mysqli->prepare("SELECT * FROM `goods` WHERE `id` = (?);");
+  $stmt->bind_param('i', $id);
+  $stmt->execute();
+  $good = $stmt->get_result();
   
-  if(mysqli_num_rows($post) === 0) {
+  if(mysqli_num_rows($good) === 0) {
     http_response_code(404);
     $res = [
       "status" => false,
@@ -41,8 +40,8 @@ function getGood($db, $id) {
     echo json_encode($res);
   }
   else {
-    $post = mysqli_fetch_assoc($post); /* Преобразование в обычный ассоциативный массив */
-    echo json_encode($post);
+    $good = $good->fetch_assoc(); /* Преобразование в обычный ассоциативный массив */
+    echo json_encode($good);
   }
 }
 
@@ -134,22 +133,28 @@ function deleteGood($db, $goodId) {
 /************************ USERS ********************/
 /************************ USERS ********************/
 
-function getUsers($db) {
-  $users = mysqliQuery($db, "SELECT * FROM `users`;");
+function getUsers() {
+  $mysqli = DataBase::getInstance();
+
+  $stmt = $mysqli->prepare("SELECT * FROM `users`;");
+  $stmt->execute();
+  $result = $stmt->get_result();
 
   $usersList = [];
 
-  while($user = mysqli_fetch_assoc($users)) {
+  while($user = $result->fetch_assoc()) {
     $usersList[] = $user;
   }
 
   echo json_encode($usersList);
 }
 
-function registerUser($db, $postData) {
-  $email = mysqli_real_escape_string($db, $postData["email"]);
-  $password = mysqli_real_escape_string($db, $postData["password"]);
-  $confirm_password = mysqli_real_escape_string($db, $postData["confirm_password"]);
+function registerUser($postData) {
+  $mysqli = DataBase::getInstance();
+
+  $email = mysqli_real_escape_string($mysqli, $postData["email"]);
+  $password = mysqli_real_escape_string($mysqli, $postData["password"]);
+  $confirm_password = mysqli_real_escape_string($mysqli, $postData["confirm_password"]);
 
   if(empty($postData) || !isset($email) || empty($email) || !isset($password) || empty($password) 
   || !isset($confirm_password) || empty($confirm_password)) return false;
@@ -159,7 +164,10 @@ function registerUser($db, $postData) {
     return false;
   }
 
-  $user = mysqliQuery($db, "SELECT * FROM `users` WHERE `email` = '$email';");
+  $stmt = $mysqli->prepare("SELECT * FROM `users` WHERE `email` = (?);");
+  $stmt->bind_param('s', $email);
+  $stmt->execute();
+  $user = $stmt->get_result();
 
   if(mysqli_num_rows($user) > 0) {
     echo 'User with such email already exists!';
@@ -170,12 +178,15 @@ function registerUser($db, $postData) {
   $hashPass = password_hash($password, PASSWORD_DEFAULT);
   $nameFromEmail = strstr($email, '@', true);
   
-  if(mysqliQuery($db, "INSERT INTO `users` (`id`, `email`, `password`, `registered_at`, `name`) 
-  VALUES (NULL, '$email', '$hashPass', '$date', '$nameFromEmail');")) {
+  $query = $mysqli->prepare("INSERT INTO `users` (`email`, `password`, `registered_at`, `name`) 
+  VALUES (?, ?, ?, ?);");
+  $query->bind_param('ssss', $email, $hashPass, $date, $nameFromEmail);
+
+  if($query->execute()) {
     http_response_code(201);
     $res = [
       "status" => true,
-      "user_id" => mysqli_insert_id($db)
+      "user_id" => mysqli_insert_id($mysqli)
     ];
   }
 

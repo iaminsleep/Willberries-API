@@ -6,10 +6,10 @@ switch($method) {
   case 'GET':
     if($type === 'goods') {
       if(isset($id)) {
-        getGood($DATABASE, $id);
+        getGood($id); /* Retrieve one good by its ID */
       }
       else {
-        getGoods($DATABASE);  /* Получение всех товаров */
+        getGoods();  /* Retrieve all of the goods */
       }
     }
     if($type === 'orders') {
@@ -22,22 +22,22 @@ switch($method) {
     }
     if($type === 'users') {
       if(isset($id)) {
-        getUser($DATABASE, $id);
+        getUser($id);
       }
       else {
-        getUsers($DATABASE);
+        getUsers();
       }
     }
     break;
   case 'POST':
     if($type === 'goods') {
-      addGood($DATABASE, $_POST);
+      addGood($_POST);
     }
     if($type === 'orders') {
-      placeOrder($DATABASE, $_POST);
+      placeOrder($_POST);
     }
     if($type === 'users') {
-      registerUser($DATABASE, $_POST);
+      registerUser($_POST);
     }
     break;
   case 'PATCH':
