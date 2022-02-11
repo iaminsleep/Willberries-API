@@ -39,6 +39,7 @@ switch($method) {
     if($type === 'users') {
       if($_POST["req"] === 'register') registerUser($_POST);
       else if($_POST["req"] === 'login') login($_POST);
+      else if(!isset($_POST["req"])) logout();
     }
     break;
   case 'PATCH':

@@ -2,6 +2,12 @@
 
 require_once 'config.php';
 
+function sendReply($responseCode, $dataRes) {
+  http_response_code($responseCode);
+  echo json_encode($dataRes); 
+  die;
+}
+
 /************************ GOODS ********************/
 /************************ GOODS ********************/
 /************************ GOODS ********************/
@@ -32,12 +38,11 @@ function getGood($id) {
   $good = $stmt->get_result();
   
   if(mysqli_num_rows($good) === 0) {
-    http_response_code(404);
     $res = [
       "status" => false,
-      "message" => "Good wasn't found!"
+      "message" => "Good wasn't found!",
     ];
-    echo json_encode($res);
+    sendReply(404, $res);
   }
   else {
     $good = $good->fetch_assoc(); /* Преобразование в обычный ассоциативный массив */
@@ -160,8 +165,11 @@ function registerUser($postData) {
   || !isset($confirm_password) || empty($confirm_password)) return false;
 
   if($password !== $confirm_password) {
-    echo "Passwords don't match!";
-    return false;
+    $res = [
+      "status" => false,
+      "message" => "Passwords don't match!",
+    ];
+    sendReply(403, $res);
   }
 
   $stmt = $mysqli->prepare("SELECT * FROM `users` WHERE `email` = (?);");
@@ -170,8 +178,11 @@ function registerUser($postData) {
   $user = $stmt->get_result();
 
   if(mysqli_num_rows($user) > 0) {
-    echo 'User with such email already exists!';
-    return false;
+    $res = [
+      "status" => false,
+      "message" => 'User with such email already exists!',
+    ];
+    sendReply(422, $res);
   };
 
   $date = date("Y-m-d H:i:s");
@@ -183,22 +194,20 @@ function registerUser($postData) {
   $stmt->bind_param('ssss', $email, $hashPass, $date, $nameFromEmail);
 
   if($stmt->execute()) {
-    http_response_code(201);
     $res = [
       "status" => true,
-      "user_id" => mysqli_insert_id($mysqli)
+      "user_id" => mysqli_insert_id($mysqli),
     ];
+    sendReply(201, $res);
   }
 
   else {
-    http_response_code(401);
     $res = [
       "status" => false,
-      "message" => "Bad Request!"
+      "message" => 'Bad Request!',
     ];
+    sendReply(401, $res);
   }
-
-  echo json_encode($res); 
 }
 
 function login($postData) {
@@ -219,36 +228,47 @@ function login($postData) {
     $isValid = password_verify($password, $data["password"]);
 
     if(!$isValid) {
-      http_response_code(403);
       $res = [
-        "status" => false,
-        "message" => "Invalid username or password!"
+      "status" => false,
+      "message" => "Invalid username or password!",
       ];
-      echo 'Invalid username or password!';
-      return false;
+      sendReply(403, $res);
     } 
 
     else {
-      http_response_code(200);
+      $_SESSION["user"] = $data["name"];
       $res = [
         "status" => true,
         "user_id" => $data["id"],
       ];
-      $_SESSION["user"] = $data["name"];
+      sendReply(200, $res);
     }
   }
 
   else {
-    http_response_code(404);
     $res = [
       "status" => false,
-      "message" => 'User with such email was not found!',
+      "message" => 'User with email '.$postData['email'].' was not found!',
     ];
-    echo 'User with email '.$postData['email'].' was not found!';
-    return false;
+    sendReply(404, $res);
   }
+}
 
-  echo json_encode($res);
+function logout() {
+  if(!isset($_SESSION["user"])) {
+    $res = [
+      "status" => false,
+      "message" => 'You are not logged in',
+    ];
+    sendReply(403, $res);
+  }
+  else {
+    http_response_code(204);
+    session_unset($_SESSION["user"]);
+    var_dump($_SESSION);
+    session_destroy();
+    die;
+  }
 }
 
 /************************ ORDERS ********************/

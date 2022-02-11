@@ -2,7 +2,7 @@
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-const DB_HOST = "localhost";
+const DB_HOST = "localhost:3306";
 const DB_USER = "root";
 const DB_PASS = "";
 const DB_NAME = "api_willberries";
@@ -31,5 +31,14 @@ class DataBase
   /* cloning of singleton classes is not allowed so __clone() function must be empty */
   private function __clone() {}
 }
+
+session_set_cookie_params([
+    'lifetime' => 86400,
+    'path' => '/',
+    'domain' => '.api.willberries.com',
+    'secure' => false,
+    'httponly' => false,
+    'samesite' => 'none',
+]);
 
 session_start();
