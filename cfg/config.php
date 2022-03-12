@@ -2,10 +2,17 @@
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-const DB_HOST = "127.0.0.1";
-const DB_USER = "root";
-const DB_PASS = "";
-const DB_NAME = "api_willberries";
+// Development connection
+// const DB_HOST = "127.0.0.1";
+// const DB_USER = "root";
+// const DB_PASS = "";
+// const DB_NAME = "api_willberries";
+
+// Remote connection
+const DB_HOST = "remotemysql.com";
+const DB_USER = "YcesJcRre4";
+const DB_PASS = "aQuK5wq3m3";
+const DB_NAME = "YcesJcRre4";
 
 class DataBase
 {
