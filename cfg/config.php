@@ -41,11 +41,10 @@ class DataBase
 
 session_set_cookie_params(array(
     'lifetime' => 86400,
-    'path' => null,
+    'path' => '/',
     'domain' => $_SERVER['HTTP_HOST'],
-    'secure' => null,
+    'secure' => true,
     'httponly' => false,
-    'samesite' => 'none',
 ));
 
 session_start();
