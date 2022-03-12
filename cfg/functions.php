@@ -236,12 +236,13 @@ function login($postData) {
     } 
 
     else {
-      $_SESSION["user"] = $data["name"];
+      $_SESSION["user"] = $data["email"];
       $res = [
         "status" => true,
         "user_id" => $data["id"],
-      ];
-      sendReply(200, $res);
+        "user" => $_SESSION["user"],
+      ];   
+       sendReply(200, $res);
     }
   }
 
@@ -263,9 +264,9 @@ function logout() {
     sendReply(403, $res);
   }
   else {
-    http_response_code(204);
-    session_unset($_SESSION["user"]);
+    http_response_code(200);
     var_dump($_SESSION);
+    unset($_SESSION["user"]);
     session_destroy();
     die;
   }

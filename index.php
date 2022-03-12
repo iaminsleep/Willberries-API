@@ -5,7 +5,7 @@ header("Access-Control-Allow-Headers: *");
 header("Access-Control-Allow-Methods: *");
 header("Access-Control-Allow-Credentials: true");
 
-header('Content-Type: application/json');
+header("Content-Type: application/json");
 
 require_once 'cfg/config.php';
 require_once 'cfg/functions.php';

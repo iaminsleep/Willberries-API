@@ -2,7 +2,7 @@
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-const DB_HOST = "localhost:3306";
+const DB_HOST = "127.0.0.1";
 const DB_USER = "root";
 const DB_PASS = "";
 const DB_NAME = "api_willberries";
@@ -32,13 +32,13 @@ class DataBase
   private function __clone() {}
 }
 
-session_set_cookie_params([
+session_set_cookie_params(array(
     'lifetime' => 86400,
-    'path' => '/',
-    'domain' => '.api.willberries.com',
-    'secure' => false,
+    'path' => null,
+    'domain' => $_SERVER['HTTP_HOST'],
+    'secure' => null,
     'httponly' => false,
     'samesite' => 'none',
-]);
+));
 
 session_start();
