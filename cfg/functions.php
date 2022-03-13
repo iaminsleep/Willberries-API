@@ -236,7 +236,7 @@ function login($postData) {
     } 
 
     else {
-      setcookie('PHPSESSID', session_id(), time() + (86400 * 30), '/', $_SERVER['HTTP_HOST'], 'secure=true', 'httponly=false');
+      setcookie('PHPSESSID', session_id(), time() + (86400 * 30), '/', 'willberries.herokuapp.com', 'secure=true', 'httponly=false');
       $res = [
         "status" => true,
         "user_id" => $data["id"],
