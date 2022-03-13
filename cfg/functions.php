@@ -236,7 +236,7 @@ function login($postData) {
     } 
 
     else {
-      setcookie('PHPSESSID', session_id(), time() + (86400 * 30), '/', 'samesite=strict');
+      setcookie('PHPSESSID', session_id(), time() + (86400 * 30), '/', $_SERVER['HTTP_HOST'], 'secure=true', 'httponly=false');
       $res = [
         "status" => true,
         "user_id" => $data["id"],
@@ -264,7 +264,6 @@ function logout() {
   }
   else {
     http_response_code(200);
-    var_dump($_COOKIE["PHPSESSID"]);
     unset($_COOKIE["PHPSESSID"]);
     session_destroy();
     die;
