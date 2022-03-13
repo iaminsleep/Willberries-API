@@ -229,20 +229,21 @@ function login($postData) {
 
     if(!$isValid) {
       $res = [
-      "status" => false,
-      "message" => "Invalid username or password!",
+        "status" => false,
+        "message" => "Invalid username or password!",
       ];
       sendReply(403, $res);
     } 
 
     else {
       $_SESSION["user"] = $data["email"];
+      setcookie('PHPSESSID', session_id(), time() + (86400 * 30), '/');
       $res = [
         "status" => true,
         "user_id" => $data["id"],
         "user" => $_SESSION["user"],
       ];   
-       sendReply(200, $res);
+      sendReply(200, $res);
     }
   }
 
@@ -256,7 +257,7 @@ function login($postData) {
 }
 
 function logout() {
-  if(!isset($_SESSION["user"])) {
+  if(!isset($_COOKIE["PHPSESSID"])) {
     $res = [
       "status" => false,
       "message" => 'You are not logged in',
@@ -265,8 +266,8 @@ function logout() {
   }
   else {
     http_response_code(200);
-    var_dump($_SESSION);
-    unset($_SESSION["user"]);
+    unset($_COOKIE["PHPSESSID"]);
+    var_dump($_COOKIE["PHPSESSID"]);
     session_destroy();
     die;
   }
