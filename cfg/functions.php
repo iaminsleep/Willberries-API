@@ -236,12 +236,10 @@ function login($postData) {
     } 
 
     else {
-      $_SESSION["user"] = $data["email"];
-      setcookie('PHPSESSID', session_id(), time() + (86400 * 30), '/');
+      setcookie('PHPSESSID', session_id(), time() + (86400 * 30), '/', 'samesite=strict');
       $res = [
         "status" => true,
         "user_id" => $data["id"],
-        "user" => $_SESSION["user"],
       ];   
       sendReply(200, $res);
     }
@@ -266,8 +264,8 @@ function logout() {
   }
   else {
     http_response_code(200);
-    unset($_COOKIE["PHPSESSID"]);
     var_dump($_COOKIE["PHPSESSID"]);
+    unset($_COOKIE["PHPSESSID"]);
     session_destroy();
     die;
   }
