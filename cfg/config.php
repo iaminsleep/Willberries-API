@@ -39,12 +39,4 @@ class DataBase
   private function __clone() {}
 }
 
-// session_set_cookie_params(array(
-//     'lifetime' => 86400,
-//     'path' => '/',
-//     'domain' => $_SERVER['HTTP_HOST'],
-//     'secure' => false,
-//     'httponly' => false,
-// ));
-
 session_start();
