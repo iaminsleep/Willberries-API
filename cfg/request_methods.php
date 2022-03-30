@@ -61,9 +61,9 @@ switch($method) {
       placeOrder($_POST);
     }
     if($type === 'users') {
-      if($_POST["req"] === 'register') registerUser($_POST);
-      else if($_POST["req"] === 'login') login($_POST);
-      else if(!isset($_POST["req"])) logout();
+      if(isset($_POST["confirm_password"])) registerUser($_POST);
+      else if(!isset($_POST["confirm_password"]) && isset($_POST["password"], $_POST["email"])) login($_POST);
+      else if(!isset($_POST["email"], $_POST["password"])) logout();
     }
     break;
   case 'PATCH':

@@ -21,7 +21,7 @@ function getUserData() {
 function getUsers() {
   $mysqli = DataBase::getInstance();
 
-  $stmt = $mysqli->prepare("SELECT * FROM `users`;");
+  $stmt = $mysqli->prepare("SELECT * FROM `user`;");
   $stmt->execute();
   $result = $stmt->get_result();
 
@@ -52,7 +52,7 @@ function registerUser($postData) {
     sendReply(403, $res);
   }
 
-  $stmt = $mysqli->prepare("SELECT * FROM `users` WHERE `email` = (?);");
+  $stmt = $mysqli->prepare("SELECT * FROM `user` WHERE `email` = (?);");
   $stmt->bind_param('s', $email);
   $stmt->execute();
   $user = $stmt->get_result();
@@ -69,7 +69,7 @@ function registerUser($postData) {
   $hashPass = password_hash($password, PASSWORD_DEFAULT);
   $nameFromEmail = strstr($email, '@', true);
   
-  $stmt = $mysqli->prepare("INSERT INTO `users` (`email`, `password`, `registered_at`, `name`) 
+  $stmt = $mysqli->prepare("INSERT INTO `user` (`email`, `password`, `registered_at`, `name`) 
   VALUES (?, ?, ?, ?);");
   $stmt->bind_param('ssss', $email, $hashPass, $date, $nameFromEmail);
 
@@ -98,7 +98,7 @@ function login($postData) {
 
   if(empty($postData) || !isset($email) || empty($email) || !isset($password) || empty($password)) return false;
 
-  $stmt = $mysqli->prepare("SELECT * FROM `users` WHERE `email` = (?);");
+  $stmt = $mysqli->prepare("SELECT * FROM `user` WHERE `email` = (?);");
   $stmt->bind_param('s', $email);
   $stmt->execute();
   $result = $stmt->get_result();
