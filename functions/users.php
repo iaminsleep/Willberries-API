@@ -5,18 +5,8 @@
 /************************ USERS ********************/
 /************************ USERS ********************/
 
-function isAuth() {
-  $headers = getallheaders();
-  $token = str_replace('Bearer ', '', $headers['Authorization']);
-  return $token !== '';
-}
-
-function getUserData() {
-  $headers = apache_request_headers();
-  $jwt = $headers['Authorization'];
-  $secret_key = "authkey456";
-  $decoded_data = JWT::decode($jwt, $secret_key, array('HS512'));
-}
+use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
 
 function getUsers() {
   $mysqli = DataBase::getInstance();
@@ -32,6 +22,27 @@ function getUsers() {
   }
 
   echo json_encode($usersList);
+}
+
+function getUser($id) {
+  $mysqli = DataBase::getInstance();
+
+  $stmt = $mysqli->prepare("SELECT * FROM `user` WHERE `id` = (?);");
+  $stmt->bind_param('i', $id);
+  $stmt->execute();
+  $user = $stmt->get_result();
+
+  if(mysqli_num_rows($user) === 0) {
+    $res = [
+      "status" => false,
+      "message" => "The user wasn't found!",
+    ];
+    sendReply(404, $res);
+  }
+  else {
+    $user = $user->fetch_assoc();
+    echo json_encode($user);
+  }
 }
 
 function registerUser($postData) {
@@ -78,10 +89,12 @@ function registerUser($postData) {
       "status" => true,
       "user_id" => mysqli_insert_id($mysqli),
     ];
-    sendReply(201, $res);
-  }
-
-  else {
+    $stmt = $mysqli->prepare("INSERT INTO `shopping_cart` (`user_id`) VALUES (?);");
+    $stmt->bind_param('i', mysqli_insert_id($mysqli));
+    if($stmt->execute()) {
+      sendReply(201, $res);
+    };
+  } else {
     $res = [
       "status" => false,
       "message" => 'Bad Request!',
@@ -116,29 +129,32 @@ function login($postData) {
     } 
 
     else {
+      $cart = getUserCart($data["id"]);
+
       $secret_key = 'authkey456';
       $iat = time();
       $exp = $iat + 60 * 60;
       $user_data = [
         "id" => $data["id"],
         "email" => $data["email"],
+        "cart_id" => $cart["id"],
       ];
-
-      $payload_info = array(
-        'iss' => 'http://willberries-api.com/',
+      
+      $payload = array(
+        'iss' => 'http://willberries-api/',
         'aud' => 'http://localhost:3000/',
         // 'iss' => 'https://willberries-api.herokuapp.com/',
         // 'aud' => 'https://willberries.herokuapp.com/',
         'iat' => $iat,
         'exp' => $exp,
-        'data' => $user_data,
+        'user_data' => $user_data,
       );
       
       $jwt = JWT::encode($payload, $secret_key, 'HS512');
 
       $res = [
         "status" => true,
-        "user_id" => $data["id"],
+        "user_id" => $user_data["id"],
         "token" => $jwt,
         "expires" => $exp,
       ];   
@@ -185,4 +201,18 @@ function logout() {
   }
 
   die;
+}
+
+function isAuth() {
+  $headers = getallheaders();
+  $token = str_replace('Bearer ', '', $headers['Authorization']);
+  return $token !== '';
+}
+
+function getUserData() {
+  $headers = apache_request_headers();
+  $jwt = str_replace('Bearer ', '', $headers['Authorization']);
+  $secret_key = "authkey456";
+  $decoded_data = JWT::decode($jwt, new Key($secret_key, 'HS512'));
+  return $decoded_data;
 }

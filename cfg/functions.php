@@ -1,7 +1,6 @@
 <?php
 
 require_once 'config.php';
-use \Firebase\JWT\JWT;
 
 function sendReply($responseCode, $dataRes) {
   http_response_code($responseCode);
@@ -17,3 +16,4 @@ require_once dirname(__DIR__).'/functions/shopping_cart.php';
 require_once dirname(__DIR__).'/functions/orders.php';
 require_once dirname(__DIR__).'/functions/categories.php';
 require_once dirname(__DIR__).'/functions/genders.php';
+require_once dirname(__DIR__).'/functions/cart_items.php';

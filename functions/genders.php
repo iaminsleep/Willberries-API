@@ -32,7 +32,7 @@ function getGender($id) {
     sendReply(404, $res);
   }
   else {
-    $gender->fetch_assoc();
+    $gender = $gender->fetch_assoc();
     echo json_encode($gender);
   }
 }

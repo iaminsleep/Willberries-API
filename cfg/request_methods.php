@@ -1,12 +1,14 @@
 <?php
 
 //get parameters
-$query = $_GET['q'];
+
+
+$query = $_GET['q'] ?? null;
 
 $params = explode('/', $query); /* Запрос к определённому товару как в REST API, например goods/2 */
 
 $type = $params[0];
-$id = $params[1];
+$id = $params[1] ?? null;
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -15,42 +17,54 @@ switch($method) {
     if($type === 'goods') {
       if(isset($id)) {
         getGood($id); /* Retrieve one good by its ID */
-      }
-      else {
+      } else {
         getGoods();  /* Retrieve all of the goods */
       }
     }
     if($type === 'orders') {
       if(isset($id)) {
         getOrder($id);
-      }
-      else {
+      } else {
         getOrders();
       }
     }
     if($type === 'users') {
       if(isset($id)) {
         getUser($id);
-      }
-      else {
+      } else {
         getUsers();
       }
     }
     if($type === 'categories') {
       if(isset($id)) {
         getCategory($id);
-      }
-      else {
+      } else {
         getCategories();
       }
     }
     if($type === 'genders') {
       if(isset($id)) {
         getGender($id);
-      }
-      else {
+      } else {
         getGenders();
       }
+    }
+    if($type === 'carts') {
+      if(isset($id)) {
+        getUserCart($id);
+      } else {
+        getUserCarts();
+      }
+    }
+    if($type === 'cart_items') {
+      if(isAuth()) getUserCartItems();
+      else {
+        if(isset($id)) {
+          getCartItem($id);
+        } else {
+          getCartItems();
+        }
+      } 
     }
     break;
   case 'POST':
@@ -63,7 +77,10 @@ switch($method) {
     if($type === 'users') {
       if(isset($_POST["confirm_password"])) registerUser($_POST);
       else if(!isset($_POST["confirm_password"]) && isset($_POST["password"], $_POST["email"])) login($_POST);
-      else if(!isset($_POST["email"], $_POST["password"])) logout();
+      else if(!isset($_POST["email"], $_POST["password"]) && isAuth()) logout();
+    }
+    if($type === 'cart_items') {
+      addToCart($_POST);
     }
     break;
   case 'PATCH':
