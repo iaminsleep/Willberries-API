@@ -1,41 +1,9 @@
 <?php
 
-function getCartItems() {
-  $mysqli = DataBase::getInstance();
-  
-  $stmt = $mysqli->prepare("SELECT * FROM `cart_item`;");
-  $stmt->execute();
-  $result = $stmt->get_result();
-
-  $cartItemsList = [];
-
-  while($good = $result->fetch_assoc()) {
-    $cartItemsList[] = $good;
-  }
-
-  echo json_encode($cartItemsList);
-}
-
-function getCartItem($id) {
-  $mysqli = DataBase::getInstance();
-
-  $stmt = $mysqli->prepare("SELECT * FROM `cart_item` WHERE `id` = (?);");
-  $stmt->bind_param('i', $id);
-  $stmt->execute();
-  $cartItem = $stmt->get_result();
-  
-  if(mysqli_num_rows($cartItem) === 0) {
-    $res = [
-      "status" => false,
-      "message" => "Cart item wasn't found!",
-    ];
-    sendReply(404, $res);
-  }
-  else {
-    $cartItem = $cartItem->fetch_assoc();
-    echo json_encode($cartItem);
-  }
-}
+/********************** CART ITEMS ********************/
+/********************** CART ITEMS ********************/
+/********************** CART ITEMS ********************/
+/********************** CART ITEMS ********************/
 
 function getUserCartItems() {
   $mysqli = DataBase::getInstance();
@@ -57,5 +25,28 @@ function getUserCartItems() {
 }
 
 function addToCart($postData) {
-  
+  $mysqli = DataBase::getInstance();
+
+  $decodedJWTData = getUserData();
+
+  $stmt = $mysqli->prepare("INSERT INTO 
+    `cart_item` (`product_id`, `name`, `quantity`, `price`, `img`, `shopping_cart_id`) 
+    VALUES (?, ?, ?, ?, ?, ?);");   
+  $stmt->bind_param('isiisi', $postData['product_id'], $postData['name'], $postData['quantity'], 
+  $postData['price'], $postData['img'], $decodedJWTData->user_data->cart_id);
+
+  if($stmt->execute()) {
+    $res = [
+      "status" => true,
+      "item_id" => mysqli_insert_id($mysqli),
+    ];
+    sendReply(201, $res);
+  }
+  else {
+    $res = [
+      "status" => false,
+      "message" => 'Failed to add item to cart. Please try again.',
+    ];
+    sendReply(400, $res);
+  }
 }

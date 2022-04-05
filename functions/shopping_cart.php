@@ -17,7 +17,6 @@ function getUserCarts() {
   echo json_encode($cartList);
 }
   
-
 function getUserCart($userId) {
   $mysqli = DataBase::getInstance();
 

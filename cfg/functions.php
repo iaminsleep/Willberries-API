@@ -10,7 +10,7 @@ function sendReply($responseCode, $dataRes) {
 
 require_once(realpath($_SERVER["DOCUMENT_ROOT"]) . '/vendor/autoload.php'); //the first way of accessing root directory
 
-require_once dirname(__DIR__).'/functions/goods.php'; //the second way
+require_once dirname(__DIR__).'/functions/products.php'; //the second way
 require_once dirname(__DIR__).'/functions/users.php';
 require_once dirname(__DIR__).'/functions/shopping_cart.php';
 require_once dirname(__DIR__).'/functions/orders.php';

@@ -8,7 +8,7 @@
 function getGoods() {
   $mysqli = DataBase::getInstance();
   
-  $stmt = $mysqli->prepare("SELECT * FROM `goods`;");
+  $stmt = $mysqli->prepare("SELECT * FROM `product`;");
   $stmt->execute();
   $result = $stmt->get_result();
 
@@ -24,7 +24,7 @@ function getGoods() {
 function getGood($id) {
   $mysqli = DataBase::getInstance();
 
-  $stmt = $mysqli->prepare("SELECT * FROM `goods` WHERE `id` = (?);");
+  $stmt = $mysqli->prepare("SELECT * FROM `product` WHERE `id` = (?);");
   $stmt->bind_param('i', $id);
   $stmt->execute();
   $good = $stmt->get_result();

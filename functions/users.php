@@ -133,7 +133,7 @@ function login($postData) {
 
       $secret_key = 'authkey456';
       $iat = time();
-      $exp = $iat + 60 * 60;
+      $exp = $iat + 60 * 60 * 10 * 10 * 10 * 10;
       $user_data = [
         "id" => $data["id"],
         "email" => $data["email"],
@@ -213,6 +213,16 @@ function getUserData() {
   $headers = apache_request_headers();
   $jwt = str_replace('Bearer ', '', $headers['Authorization']);
   $secret_key = "authkey456";
-  $decoded_data = JWT::decode($jwt, new Key($secret_key, 'HS512'));
+  try {
+    $decoded_data = JWT::decode($jwt, new Key($secret_key, 'HS512'));
+  }
+  catch(\Exception $e) {
+    $res = [
+      "status" => false,
+      "message" => $e->getMessage(), ". You have been logged out.",
+    ];
+    logout();
+    sendReply(401, $res);
+  }
   return $decoded_data;
 }

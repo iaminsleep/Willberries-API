@@ -2,7 +2,6 @@
 
 //get parameters
 
-
 $query = $_GET['q'] ?? null;
 
 $params = explode('/', $query); /* Запрос к определённому товару как в REST API, например goods/2 */
@@ -58,13 +57,6 @@ switch($method) {
     }
     if($type === 'cart_items') {
       if(isAuth()) getUserCartItems();
-      else {
-        if(isset($id)) {
-          getCartItem($id);
-        } else {
-          getCartItems();
-        }
-      } 
     }
     break;
   case 'POST':
@@ -77,10 +69,10 @@ switch($method) {
     if($type === 'users') {
       if(isset($_POST["confirm_password"])) registerUser($_POST);
       else if(!isset($_POST["confirm_password"]) && isset($_POST["password"], $_POST["email"])) login($_POST);
-      else if(!isset($_POST["email"], $_POST["password"]) && isAuth()) logout();
+      else if(!isset($_POST["email"], $_POST["password"])) logout();
     }
     if($type === 'cart_items') {
-      addToCart($_POST);
+      if(isAuth()) addToCart($_POST);
     }
     break;
   case 'PATCH':
