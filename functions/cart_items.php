@@ -50,3 +50,48 @@ function addToCart($postData) {
     sendReply(400, $res);
   }
 }
+
+function changeQtyInCart($postData) {
+  $mysqli = DataBase::getInstance();
+
+  $stmt = $mysqli->prepare("UPDATE `cart_item` SET `quantity` = (?) WHERE `id` = (?)");  
+  $stmt->bind_param('ii', $postData['quantity'], $postData['id']);
+
+  if($stmt->execute()) {
+    $res = [
+      "status" => true,
+      "item_id" => $postData['id'],
+      "quantity" => $postData['quantity'],
+    ];
+    sendReply(200, $res);
+  }
+  else {
+    $res = [
+      "status" => false,
+      "message" => 'Failed to change the quantity of the item. Please try later.',
+    ];
+    sendReply(400, $res);
+  }
+} 
+
+function deleteFromCart($postData) {
+  $mysqli = DataBase::getInstance();
+
+  $stmt = $mysqli->prepare("DELETE FROM `cart_item` WHERE `id` = (?)");  
+  $stmt->bind_param('i', $postData['id']);
+
+  if($stmt->execute()) {
+    $res = [
+      "status" => true,
+      "item_id" => $postData['id'],
+    ];
+    sendReply(200, $res);
+  }
+  else {
+    $res = [
+      "status" => false,
+      "message" => 'Failed to delete item from the cart. Please try later.',
+    ];
+    sendReply(400, $res);
+  }
+} 

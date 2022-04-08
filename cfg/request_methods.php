@@ -72,7 +72,11 @@ switch($method) {
       else if(!isset($_POST["email"], $_POST["password"])) logout();
     }
     if($type === 'cart_items') {
-      if(isAuth()) addToCart($_POST);
+      if(isAuth()) {
+        if($_POST['req'] === 'add') addToCart($_POST);
+        if($_POST['req'] === 'change') changeQtyInCart($_POST);
+        if($_POST['req'] === 'delete') deleteFromCart($_POST);
+      }
     }
     break;
   case 'PATCH':
