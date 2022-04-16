@@ -5,60 +5,52 @@
 /************************ ORDERS ********************/
 /************************ ORDERS ********************/
 
-function placeOrder($db, $data) {
-  $personName = $data["name"];
-  $email = $data["email"];
-  $phone = $data["phone"];
-  $goods = $data["goods"];
+function placeOrder($postArray) {
+  $mysqli = DataBase::getInstance();
 
-  // foreach($goods as $good) {
-  //   mysqliQuery($db, "INSERT INTO `orders` (`good_id`, `user_id`, `email`, `price`, `date`) VALUES (`$good['id']`, ")
-  // }
-  // if(mysqliQuery($db, "INSERT INTO `goods` (`id`, `name`, `description`, `category`, `gender`, `price`, `img`, `label`, `offer`) VALUES (NULL, '$name', '$description', '$category', '$gender', '$price', '$img', '$label', '$offer');")) 
-  // {
-  //   http_response_code(201); /* ответ 201 - Created */
-  //   $res = [
-  //     "status" => true,
-  //     "good_id" => mysqli_insert_id($db)
-  //   ];
-  // }
+  $stmt = $mysqli->prepare("INSERT INTO `order` (`user_id`, `total`, `created_at`, `comment`) VALUES (?, ?, ?, ?);");
+  $stmt->bind_param('iiss', $postArray['user_id'], $postArray['total'], $postArray['created_at'], $postArray['comment']);
+  if($stmt->execute()) {
+    $order_id = mysqli_insert_id($mysqli);
+  };
 
-  // else {
-  //   http_response_code(401); /* Bad request */
-  //   $res = [
-  //     "status" => false,
-  //     "message" => "Bad Request!"
-  //   ];
-  // }
+  $decodedJWTData = getUserData();
+  $cart_id = $decodedJWTData->user_data->cart_id;
 
-  // echo json_encode($res);
-}
+  $stmt = $mysqli->prepare("SELECT * FROM `cart_item` WHERE `shopping_cart_id` = (?);");
+  $stmt->bind_param('i', $cart_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
 
-function getOrders($db) {
-  $orders = mysqliQuery($db, "SELECT * FROM `orders`;");
+  $cartItemsList = [];
 
-  $ordersList = [];
-
-  while($order = mysqli_fetch_assoc($orders)) {
-    $ordersList[] = $order;
+  while($cartItem = $result->fetch_assoc()) {
+    $cartItemsList[] = $cartItem;
   }
 
-  echo json_encode($ordersList); /* Данные переводятся в JSON формат */
-}
+  foreach($cartItemsList as $cartItem) {
+    $stmt = $mysqli->prepare("INSERT INTO 
+      `order_item` (`product_id`, `order_id`, `name`, `quantity`, `price`, `img`) 
+        VALUES (?, ?, ?, ?, ?, ?);");
+    $stmt->bind_param('iisiis', $cartItem['product_id'], $order_id, $cartItem['name'], 
+      $cartItem['quantity'], $cartItem['price'], $cartItem['img']);
+    if(!$stmt->execute()) {
+      $res = [
+        "status" => false,
+        "message" => 'Unexpected error during order submit. Try again later.',
+      ];
+      return sendReply(400, $res);
+    };
+  }
 
-function getOrder($db, $id) {
-  $order = mysqliQuery($db, "SELECT * FROM `orders` WHERE `id` = '$id';");
+  $stmt = $mysqli->prepare("DELETE FROM `cart_item` WHERE `shopping_cart_id` = (?);");
+  $stmt->bind_param('i', $cart_id);
+  $stmt->execute();
   
-  if(mysqli_num_rows($order) === 0) {
-    http_response_code(404);
-    $res = [
-      "status" => false,
-      "message" => "Order wasn't found!"
-    ];
-    echo json_encode($res);
-  }
-  else {
-    $order = mysqli_fetch_assoc($order); /* Преобразование в обычный ассоциативный массив */
-    echo json_encode($order);
-  }
+  $res = [
+    "status" => true,
+    "order_id" => $order_id,
+    "message" => "Your order has been created successfully. Expect a call from our manager!",
+  ];
+  sendReply(201, $res);
 }

@@ -41,7 +41,7 @@ function getUser($id) {
   }
   else {
     $user = $user->fetch_assoc();
-    echo json_encode($user);
+    return $user;
   }
 }
 
@@ -136,7 +136,11 @@ function login($postData) {
       $exp = $iat + 60 * 60 * 10 * 10 * 10 * 10;
       $user_data = [
         "id" => $data["id"],
+        "name" => $data["name"],
         "email" => $data["email"],
+        "phone" => $data["phone"],
+        "avatar" => $data["avatar"],
+        "manager" => $data["manager"],
         "cart_id" => $cart["id"],
       ];
       
@@ -209,20 +213,79 @@ function isAuth() {
   return $token !== '';
 }
 
-function getUserData() {
+function getUserData($request = '') {
   $headers = apache_request_headers();
   $jwt = str_replace('Bearer ', '', $headers['Authorization']);
   $secret_key = "authkey456";
   try {
     $decoded_data = JWT::decode($jwt, new Key($secret_key, 'HS512'));
+    if($request === 'account') {
+      $actualUserData = getUser($decoded_data->user_data->id);
+      $res = [
+        "id" => $actualUserData['id'],
+        "name" => $actualUserData['name'],
+        "email" => $actualUserData['email'],
+        "phone" => $actualUserData['phone'],
+        "avatar" => $actualUserData['avatar'],
+      ];
+      sendReply(200, $res);
+    }
   }
-  catch(\Exception $e) {
+  catch(\Firebase\JWT\ExpiredException $e) {
     $res = [
       "status" => false,
       "message" => $e->getMessage(), ". You have been logged out.",
     ];
-    logout();
+    sendReply(401, $res);
+  }
+  catch(\Exception $e) {
+    $res = [
+      "status" => false,
+      "message" => 'Caught exception: ',  $e->getMessage(),
+    ];
     sendReply(401, $res);
   }
   return $decoded_data;
+}
+
+function changeUserSettings($postArray) {
+  $mysqli = DataBase::getInstance();
+
+  $decodedJWTData = getUserData();
+  $user_id = $decodedJWTData->user_data->id;
+
+  if($postArray['avatarName'] && $postArray['avatar']) {
+    $fileName = $postArray['avatarName'];
+    $uploadDir = "img/avatars/";
+    if (strpos($postArray['avatar'], 'data:image/png;base64,') !== false) {
+      $base64_code = str_replace('data:image/png;base64,', '', $postArray['avatar']);
+      $fileName = $postArray['avatarName'].'.png';   
+    }
+    else {
+      $base64_code = str_replace('data:image/jpeg;base64,', '', $postArray['avatar']);
+      $fileName = $postArray['avatarName'].'.jpg';
+    }
+    $base64_code = str_replace(' ', '+', $base64_code);
+    $data = base64_decode($base64_code);
+    $fileFullPath = $uploadDir.$fileName;
+    $fileName = str_replace($uploadDir, "", $fileFullPath);
+    file_put_contents($fileFullPath, $data);
+
+    $stmt = $mysqli->prepare("UPDATE `user` SET `name` = (?), `email` = (?), `phone` = (?), `avatar` = (?) WHERE `id` = (?);"); 
+    $stmt->bind_param('ssisi', $postArray['name'], $postArray['email'], $postArray['phone'], $fileName, $user_id);
+  } else {
+    $stmt = $mysqli->prepare("UPDATE `user` SET `name` = (?), `email` = (?), `phone` = (?) WHERE `id` = (?);"); 
+    $stmt->bind_param('ssii', $postArray['name'], $postArray['email'], $postArray['phone'], $user_id);
+  }
+
+  if($stmt->execute()) {
+    sendReply(204, $res);
+  }
+  else {
+    $res = [
+      "status" => false,
+      "message" => "Failed to change user settings. Make sure you've filled the fields properly",
+    ];
+    sendReply(400, $res);
+  }
 }

@@ -30,6 +30,8 @@ switch($method) {
     if($type === 'users') {
       if(isset($id)) {
         getUser($id);
+      } else if (isAuth()) {
+        getUserData('account');
       } else {
         getUsers();
       }
@@ -68,6 +70,7 @@ switch($method) {
     }
     if($type === 'users') {
       if(isset($_POST["confirm_password"])) registerUser($_POST);
+      else if(isset($_POST["name"], $_POST["phone"])) changeUserSettings($_POST);
       else if(!isset($_POST["confirm_password"]) && isset($_POST["password"], $_POST["email"])) login($_POST);
       else if(!isset($_POST["email"], $_POST["password"])) logout();
     }
