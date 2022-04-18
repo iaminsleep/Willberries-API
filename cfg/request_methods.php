@@ -21,10 +21,14 @@ switch($method) {
       }
     }
     if($type === 'orders') {
-      if(isset($id)) {
-        getOrder($id);
-      } else {
-        getOrders();
+      if(isAuth()) {
+        $decodedJWTData = getUserData();
+        $userRole = $decodedJWTData->user_data->role;
+        if($userRole === 0) {
+          getUserOrders();
+        } else if($userRole === 1) {
+          getAllOrders();
+        }
       }
     }
     if($type === 'users') {

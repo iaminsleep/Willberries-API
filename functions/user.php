@@ -140,8 +140,8 @@ function login($postData) {
         "email" => $data["email"],
         "phone" => $data["phone"],
         "avatar" => $data["avatar"],
-        "manager" => $data["manager"],
         "cart_id" => $cart["id"],
+        "role" => $data['manager'], 
       ];
       
       $payload = array(
@@ -227,6 +227,7 @@ function getUserData($request = '') {
         "email" => $actualUserData['email'],
         "phone" => $actualUserData['phone'],
         "avatar" => $actualUserData['avatar'],
+        "role" => $actualUserData['manager'], 
       ];
       sendReply(200, $res);
     }

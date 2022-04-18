@@ -54,3 +54,55 @@ function placeOrder($postArray) {
   ];
   sendReply(201, $res);
 }
+
+function getAllOrders() {
+  $mysqli = DataBase::getInstance();
+  
+  $stmt = $mysqli->prepare("SELECT * FROM `order`;");
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  $ordersList = [];
+
+  while($order = $result->fetch_assoc()) {
+    $ordersList[] = $order;
+  }
+
+  $fullOrdersInfo = []; //array with order information
+
+  foreach($ordersList as $order) {
+    $userData = getUser($order['user_id']);
+
+    //create new array with only selected keys from an existing array
+    $specificUserData = array_intersect_key($userData, array_flip(array('name', 'email', 'phone'))); 
+    
+    $stmt = $mysqli->prepare("SELECT * FROM `order_item` WHERE `order_id` = (?);");
+    $stmt->bind_param('i', $order['id']);
+
+    if(!$stmt->execute()) {
+      $res = [
+        "status" => false,
+        "message" => 'Failed to fetch order items.',
+      ];
+      return sendReply(500, $res);
+    }
+
+    $orderItemsList = [];
+    $result = $stmt->get_result();
+    
+    while($orderItem = $result->fetch_assoc()) {
+      $orderItemsList[] = $orderItem;
+    }
+
+    $res = [
+      "order_info" => $order,
+      "order_items" => $orderItemsList,
+      "user_info" => $specificUserData,
+    ];
+
+    $fullOrdersInfo[] = $res; //push this value to the array with the order info 
+  }
+
+  http_response_code(200);
+  echo json_encode($fullOrdersInfo);
+}
