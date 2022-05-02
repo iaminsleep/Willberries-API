@@ -8,6 +8,9 @@
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 
+use \PHPMailer\PHPMailer\PHPMailer;
+use \PHPMailer\PHPMailer\Exception;
+
 function getUsers() {
   $mysqli = DataBase::getInstance();
 
@@ -79,16 +82,47 @@ function registerUser($postData) {
   $date = date("Y-m-d H:i:s");
   $hashPass = password_hash($password, PASSWORD_DEFAULT);
   $nameFromEmail = strstr($email, '@', true);
-  
-  $stmt = $mysqli->prepare("INSERT INTO `user` (`email`, `password`, `registered_at`, `name`) 
-  VALUES (?, ?, ?, ?);");
-  $stmt->bind_param('ssss', $email, $hashPass, $date, $nameFromEmail);
+  $verification_key = md5($date.$email);
+  $stmt = $mysqli->prepare("INSERT INTO `user` (`email`, `password`, `registered_at`, `name`, `vkey`) 
+  VALUES (?, ?, ?, ?, ?);");
+  $stmt->bind_param('sssss', $email, $hashPass, $date, $nameFromEmail, $verification_key);
 
   if($stmt->execute()) {
     $res = [
       "status" => true,
       "user_id" => mysqli_insert_id($mysqli),
     ];
+
+    $email_to = $email;
+    $email_from = 'crossbow131313@gmail.com';
+    $mail = new PHPMailer(true);
+    $mail->IsSMTP();
+    $mail->SMTPAuth = true;
+    $mail->SMTPSecure = "ssl";
+    $mail->Host = "smtp.gmail.com";
+    $mail->Port = 465;
+    $mail->CharSet = "UTF-8";
+    $mail->SetLanguage('en', 'phpmailer/language/');
+    $mail->Username = "crossbow131313@gmail.com";
+    $mail->Password = "uyughtiI8";
+    $mail->SetFrom($email_from);
+    $mail->FromName = 'Willberries Team';
+    $mail->AddAddress($email_to);
+    $mail->Subject = "Email Verification";
+    $mail->Body = "
+      <h2>Thanks for signing up!</h2>
+      <p>Your account has been successfully created.</p>
+        
+      <p>------------------------</p>
+      <p>Your Email: $email</p>
+      <p>------------------------</p>
+        
+      <p>Please, click this link below to activate your account:</p>
+      <h4><a href ='http://localhost:3000/login?vkey=$verification_key'>Confirm Email</a></h4>
+    ";
+    $mail->IsHTML(true);
+    $mail->Send();
+
     $stmt = $mysqli->prepare("INSERT INTO `shopping_cart` (`user_id`) VALUES (?);");
     $stmt->bind_param('i', mysqli_insert_id($mysqli));
     if($stmt->execute()) {
@@ -111,7 +145,7 @@ function login($postData) {
 
   if(empty($postData) || !isset($email) || empty($email) || !isset($password) || empty($password)) return false;
 
-  $stmt = $mysqli->prepare("SELECT * FROM `user` WHERE `email` = (?);");
+  $stmt = $mysqli->prepare("SELECT * FROM `user` WHERE `email` = (?) AND `verified` = 1;");
   $stmt->bind_param('s', $email);
   $stmt->execute();
   $result = $stmt->get_result();
@@ -227,7 +261,7 @@ function getUserData($request = '') {
         "email" => $actualUserData['email'],
         "phone" => $actualUserData['phone'],
         "avatar" => $actualUserData['avatar'],
-        "role" => $actualUserData['manager'], 
+        "role" => $actualUserData['manager'],
       ];
       sendReply(200, $res);
     }
@@ -244,7 +278,7 @@ function getUserData($request = '') {
       "status" => false,
       "message" => 'Caught exception: ',  $e->getMessage(),
     ];
-    sendReply(401, $res);
+    sendReply(200, $res);
   }
   return $decoded_data;
 }
@@ -288,5 +322,31 @@ function changeUserSettings($postArray) {
       "message" => "Failed to change user settings. Make sure you've filled the fields properly",
     ];
     sendReply(400, $res);
+  }
+}
+
+function validateEmail($verification_key) {
+  $mysqli = DataBase::getInstance();
+  $stmt = $mysqli->prepare("SELECT `verified`,`vkey` FROM `user` WHERE `verified` = 0 AND `vkey` = (?);");
+  $stmt->bind_param('s', $verification_key);
+  $stmt->execute();
+  $user = $stmt->get_result();
+  if(mysqli_num_rows($user) === 0) {
+    $res = [
+      "status" => false,
+      "message" => "This account is invalid or already verified.",
+    ];
+    sendReply(404, $res);
+  }
+  else {
+    $user = $user->fetch_assoc();
+    $stmt = $mysqli->prepare("UPDATE `user` SET `verified` = 1 WHERE `vkey` = (?) LIMIT 1;");
+    $stmt->bind_param('s', $verification_key);
+    $stmt->execute();
+    $res = [
+      "status" => true,
+      "message" => "Your email has been verified. Now you can login with your email address.",
+    ];
+    sendReply(200, $res);
   }
 }
