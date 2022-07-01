@@ -89,13 +89,15 @@ function registerUser($postData) {
 
   if($stmt->execute()) {
     $id = mysqli_insert_id($mysqli);
+    echo json_encode($id);
     $res = [
       "status" => true,
       "user_id" => $id,
     ];
+    echo json_encode($res);
 
     $email_to = $email;
-    $email_from = 'crossbow131313@gmail.com';
+    $email_from = $_ENV['EMAIL'];
     $mail = new PHPMailer(true);
     $mail->IsSMTP();
     $mail->SMTPAuth = true;
@@ -104,8 +106,8 @@ function registerUser($postData) {
     $mail->Port = 465;
     $mail->CharSet = "UTF-8";
     $mail->SetLanguage('en', 'phpmailer/language/');
-    $mail->Username = "crossbow131313@gmail.com";
-    $mail->Password = "uyughtiI8";
+    $mail->Username = $_ENV['EMAIL_USERNAME'];
+    $mail->Password = $_ENV['EMAIL_PASSWORD'];
     $mail->SetFrom($email_from);
     $mail->FromName = 'Willberries Team';
     $mail->AddAddress($email_to);
@@ -119,7 +121,7 @@ function registerUser($postData) {
       <p>------------------------</p>
         
       <p>Please, click this link below to activate your account:</p>
-      <h4><a href ='http://localhost:3000/login?vkey=$verification_key'>Confirm Email</a></h4>
+      <h4><a href ='https://willberries.herokuapp.com/login?vkey=$verification_key'>Confirm Email</a></h4>
     ";
     $mail->IsHTML(true);
     $mail->Send();
