@@ -88,9 +88,10 @@ function registerUser($postData) {
   $stmt->bind_param('sssss', $email, $hashPass, $date, $nameFromEmail, $verification_key);
 
   if($stmt->execute()) {
+    $id = mysqli_insert_id($mysqli);
     $res = [
       "status" => true,
-      "user_id" => mysqli_insert_id($mysqli),
+      "user_id" => $id,
     ];
 
     $email_to = $email;
@@ -124,11 +125,13 @@ function registerUser($postData) {
     $mail->Send();
 
     $stmt = $mysqli->prepare("INSERT INTO `shopping_cart` (`user_id`) VALUES (?);");
-    $stmt->bind_param('i', mysqli_insert_id($mysqli));
+    $stmt->bind_param('i', $id);
+
     if($stmt->execute()) {
       sendReply(201, $res);
     };
-  } else {
+  } 
+  else {
     $res = [
       "status" => false,
       "message" => 'Bad Request!',
@@ -179,10 +182,10 @@ function login($postData) {
       ];
       
       $payload = array(
-        'iss' => 'http://willberries-api/',
-        'aud' => 'http://localhost:3000/',
-        // 'iss' => 'https://willberries-api.herokuapp.com/',
-        // 'aud' => 'https://willberries.herokuapp.com/',
+        // 'iss' => 'http://willberries-api/',
+        // 'aud' => 'http://localhost:3000/',
+        'iss' => 'https://willberries-api.herokuapp.com/',
+        'aud' => 'https://willberries.herokuapp.com/',
         'iat' => $iat,
         'exp' => $exp,
         'user_data' => $user_data,
