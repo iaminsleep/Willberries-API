@@ -17,3 +17,7 @@ require_once dirname(__DIR__).'/functions/order.php';
 require_once dirname(__DIR__).'/functions/category.php';
 require_once dirname(__DIR__).'/functions/gender.php';
 require_once dirname(__DIR__).'/functions/cart_item.php';
+
+// Looing for .env at the root directory
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
