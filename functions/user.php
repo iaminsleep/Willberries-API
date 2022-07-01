@@ -89,12 +89,10 @@ function registerUser($postData) {
 
   if($stmt->execute()) {
     $id = mysqli_insert_id($mysqli);
-    echo json_encode($id);
     $res = [
       "status" => true,
       "user_id" => $id,
     ];
-    echo json_encode($res);
 
     $email_to = $email;
     $email_from = $_ENV['EMAIL'];

@@ -10,10 +10,6 @@ function sendReply($responseCode, $dataRes) {
 
 require_once(realpath($_SERVER["DOCUMENT_ROOT"]) . '/vendor/autoload.php'); //the first way of accessing root directory
 
-// Looing for .env at the root directory
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->load();
-
 require_once dirname(__DIR__).'/functions/product.php'; //the second way
 require_once dirname(__DIR__).'/functions/user.php';
 require_once dirname(__DIR__).'/functions/shopping_cart.php';
